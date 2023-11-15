@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Three.js Cube with MeshDepthMaterial</title>
+    <style>
+      body {
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <script src="https://threejs.org/build/three.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
+    <script>
+      // Set up scene
+      const scene = new THREE.Scene();
+
+      // Set up camera
+      const camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+      );
+      camera.position.z = 8;
+
+      // Set up renderer
+      const renderer = new THREE.WebGLRenderer();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+
+      // Create cube with MeshDepthMaterial
+      const geometry = new THREE.BoxGeometry();
+      const materialBasic = new THREE.MeshDepthMaterial({ depthPacking: THREE.BasicDepthPacking });
+      const materialRGBA = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking });
+      const cube = new THREE.Mesh(geometry, materialBasic);
+      cube.scale.set(2, 2, 2); // Increase the size of the cube
+      scene.add(cube);
+
+      // Create ground like a chessboard
+      const groundSize = 20; // Increase the size of the ground
+      const groundGeometry = new THREE.PlaneGeometry(groundSize, groundSize);
+      const groundMaterial = new THREE.MeshBasicMaterial({ color: 0xaaaaaa, side: THREE.DoubleSide });
+      const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+      ground.rotation.x = Math.PI / 2;
+      scene.add(ground);
+
+      // GUI Controls
+      const gui = new dat.GUI();
+      const controls = {
+        near: camera.near,
+        far: camera.far,
+        useRGBA: false, // Whether to use RGBA or Basic depth packing
+        rotateSpeed: 0.005,
+      };
+
+      gui.add(controls, 'near', 0.1, 50).onChange(function () {
+        camera.near = controls.near;
+        camera.updateProjectionMatrix();
+      });
+      gui.add(controls, 'far', 100, 1000).onChange(function () {
+        camera.far = controls.far;
+        camera.updateProjectionMatrix();
+      });
+      gui.add(controls, 'useRGBA').onChange(function () {
+        cube.material = controls.useRGBA ? materialRGBA : materialBasic;
+      });
+      gui.add(controls, 'rotateSpeed', 0.001, 0.02);
+
+      // Set up animation
+      const animate = function () {
+        requestAnimationFrame(animate);
+
+        // Rotate cube
+        cube.rotation.x += controls.rotateSpeed;
+        cube.rotation.y += controls.rotateSpeed;
+
+        renderer.render(scene, camera);
+      };
+
+      animate();
+    </script>
+  </body>
+</html>
